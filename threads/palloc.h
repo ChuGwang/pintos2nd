@@ -9,7 +9,6 @@ enum palloc_flags {
     PAL_ZERO = 002,   /* Zero page contents. */
     PAL_USER = 004    /* User page. */
 };
-
 void palloc_init(size_t user_page_limit);
 void *palloc_get_page(enum palloc_flags);
 void *palloc_get_multiple(enum palloc_flags, size_t page_cnt);
@@ -18,8 +17,7 @@ void palloc_free_multiple(void *, size_t page_cnt);
 size_t palloc_get_page_index(void *page);
 
 
-
-
+// 난 아래 이걸 쓴 기억이 없는데 써져 있네
 /* Contiguous allocation mode selector */
 enum palloc_mode {
     PAL_FIRST_FIT,
