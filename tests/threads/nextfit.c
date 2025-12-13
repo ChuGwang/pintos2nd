@@ -8,39 +8,42 @@ void test_nextfit (void)
 
 
   // 추가, 테스트용이므로 삭제 후 제출
-  /* 2. A 할당 (Index 0 예상) */
+  /* 2. A, B 할당 */
   void *a = palloc_get_page (0);
-  if (a != NULL)
-    msg ("Allocated A at index %d", palloc_get_page_index (a));
-
-  /* 3. B 할당 (Index 1 예상) 
-     -> 여기까지 하면 마지막 탐색 위치(scan_idx)는 2가 되어야 함 */
   void *b = palloc_get_page (0);
-  if (b != NULL)
-    msg ("Allocated B at index %d", palloc_get_page_index (b));
 
-  /* 4. A를 해제 (Index 0이 비어있는 상태가 됨) */
+  /* 할당 자체가 실패하면 안 되므로 체크 */
+  ASSERT (a != NULL);
+  ASSERT (b != NULL);
+  
+  /* 인덱스 확인 (조용히 검사) */
+  size_t idx_a = palloc_get_page_index (a);
+  size_t idx_b = palloc_get_page_index (b);
+
+  /* 3. A 반납 (0번지를 비움) */
   palloc_free_page (a);
-  msg ("Freed A");
 
-  /* 5. C 할당 (테스트의 핵심!)
-     - First Fit이라면? 0번이 비었으니 0번에 할당함.
-     - Next Fit이라면? 아까 1번 뒤(2번)를 기억하고 있으니 2번에 할당함. */
+  /* 4. C 할당 (여기가 핵심!) */
   void *c = palloc_get_page (0);
-  if (c != NULL) {
-    int idx = palloc_get_page_index (c);
-    msg ("Allocated C at index %d", idx);
+  ASSERT (c != NULL);
 
-    /* (참고) 검증 메시지 */
-    if (idx > palloc_get_page_index(b))
-        msg ("SUCCESS: Maintained next fit property.");
-    else
-        msg ("FAIL: Returned to the beginning (First Fit behavior).");
+  size_t idx_c = palloc_get_page_index (c);
+
+  /* [검증 로직]
+     First Fit이라면? -> 빈 0번지(idx_a)에 들어갔을 것임.
+     Next Fit이라면?  -> 1번지 뒤인 2번지(idx_b + 1)에 들어갔을 것임. */
+  
+  /* 만약 C가 A의 자리(0번)로 다시 돌아갔다면 Next Fit이 아니므로 강제 종료(FAIL) */
+  if (idx_c == idx_a) {
+      PANIC ("FAIL: Output is First Fit behavior, not Next Fit.");
   }
 
-  /* 6. 뒷정리 */
+  /* 만약 C가 B의 다음 자리로 잘 갔다면 OK (아무것도 출력 안 함) */
+  ASSERT (idx_c > idx_b);
+
+  /* 5. 뒷정리 */
   palloc_free_page (b);
-  if (c != NULL) palloc_free_page (c);
+  palloc_free_page (c);
   
 }
 
