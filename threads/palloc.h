@@ -17,7 +17,6 @@ void palloc_free_multiple(void *, size_t page_cnt);
 size_t palloc_get_page_index(void *page);
 
 
-// 난 아래 이걸 쓴 기억이 없는데 써져 있네
 /* Contiguous allocation mode selector */
 enum palloc_mode {
     PAL_FIRST_FIT,
