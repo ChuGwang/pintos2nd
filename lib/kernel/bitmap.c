@@ -1,3 +1,5 @@
+// lib/kernel/bitmap.c
+
 #include "bitmap.h"
 #include <debug.h>
 #include <limits.h>
