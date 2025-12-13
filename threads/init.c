@@ -62,7 +62,7 @@ int main(void)
     console_init();
 
     /* Greet user. */
-    //printf("Pintos booting with %'" PRIu32 " kB RAM...\n",
+    printf("Pintos booting with %'" PRIu32 " kB RAM...\n",
            init_ram_pages * PGSIZE / 1024);
 
     /* Initialize memory system. */
@@ -87,7 +87,7 @@ int main(void)
 
 
 
-    //printf("Boot complete.\n");
+    printf("Boot complete.\n");
 
     /* Run actions specified on kernel command line. */
     run_actions(argv);
@@ -169,13 +169,13 @@ read_command_line(void)
     argv[argc] = NULL;
 
     /* Print kernel command line. */
-    //printf("Kernel command line:");
+    printf("Kernel command line:");
     for (i = 0; i < argc; i++)
         if (strchr(argv[i], ' ') == NULL)
-            //printf(" %s", argv[i]);
+            printf(" %s", argv[i]);
         else
-            //printf(" '%s'", argv[i]);
-    //printf("\n");
+            printf(" '%s'", argv[i]);
+    printf("\n");
 
     return argv;
 }
@@ -220,9 +220,9 @@ run_task(char **argv)
 {
     const char *task = argv[1];
 
-    //printf("Executing '%s':\n", task);
+    printf("Executing '%s':\n", task);
     run_test(task);
-    //printf("Execution of '%s' complete.\n", task);
+    printf("Execution of '%s' complete.\n", task);
 }
 
 /* Executes all of the actions specified in ARGV[]
@@ -271,7 +271,7 @@ run_actions(char **argv)
 static void
 usage(void)
 {
-    //printf("\nCommand line syntax: [OPTION...] [ACTION...]\n"
+    printf("\nCommand line syntax: [OPTION...] [ACTION...]\n"
            "Options must precede actions.\n"
            "Actions are executed in the order specified.\n"
            "\nAvailable actions:\n"
