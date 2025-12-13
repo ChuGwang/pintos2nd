@@ -8,45 +8,48 @@ void test_bestfit (void)
 
 
   // 추가, 테스트용
-  /* 2. 상황 만들기: 메모리에 구멍 뚫기 (Fragmentation)
-     목표: [ 큰 구멍 (2칸) ] --- [ 작은 구멍 (1칸) ] 상태 만들기 */
+  /* 2. 단편화(Fragmentation) 상황 만들기 
+     [ A (2칸) ] [ B (1칸-벽) ] [ C (1칸) ] [ D (1칸-벽) ] */
   
-  // A: 0~1번지 (2페이지) 할당
   void *a = palloc_get_multiple (0, 2); 
-  // B: 2번지 (1페이지) 할당 (칸막이 역할)
   void *b = palloc_get_page (0);        
-  // C: 3번지 (1페이지) 할당
   void *c = palloc_get_page (0);        
-  // D: 4번지 (1페이지) 할당 (칸막이 역할)
   void *d = palloc_get_page (0);        
 
-  /* 구멍 뚫기 */
-  palloc_free_multiple (a, 2); // 0번지에 '크기 2'짜리 큰 구멍 생김
-  palloc_free_page (c);        // 3번지에 '크기 1'짜리 딱 맞는 구멍 생김
+  ASSERT (a != NULL && b != NULL && c != NULL && d != NULL);
 
-  /* 3. Best Fit 테스트 요청 (1페이지 필요)
-     - First Fit이라면? "어? 0번지 비었네?" 하고 0번에 넣음.
-     - Best Fit이라면? "0번은 너무 넓고, 3번이 딱 맞네!" 하고 3번에 넣음. */
+  size_t idx_a = palloc_get_page_index (a);
+  size_t idx_c = palloc_get_page_index (c);
+
+  /* 구멍 뚫기: 
+     - 0번지 쪽에 크기 2짜리 구멍 (A 해제)
+     - 뒤쪽에 크기 1짜리 구멍 (C 해제) */
+  palloc_free_multiple (a, 2); 
+  palloc_free_page (c);        
+
+  /* 3. 테스트 요청 (크기 1짜리 할당) */
   void *fit = palloc_get_page (0);
+  
+  ASSERT (fit != NULL);
+  
+  size_t idx_fit = palloc_get_page_index (fit);
 
-  if (fit != NULL) {
-    int idx = palloc_get_page_index (fit);
-    msg ("Allocated at index %d", idx);
-    
-    // (참고용) 결과를 해석해주는 메시지
-    if (idx == 3)
-      msg ("SUCCESS: Detected best fit correctly.");
-    else if (idx == 0)
-      msg ("FAIL: It acts like First Fit.");
-    else
-      msg ("FAIL: Unexpected index.");
-  } 
-  else {
-    msg ("Failed to allocate");
+  /* [검증 로직]
+     - First Fit이었다면? -> 앞에서부터 찾으니 큰 구멍(A자리, idx_a)에 넣었을 것임.
+     - Best Fit이라면?    -> 딱 맞는 구멍(C자리, idx_c)을 찾아 넣었을 것임. */
+
+  if (idx_fit == idx_a) {
+      PANIC ("FAIL: Behavior matches First Fit (took the larger hole first).");
   }
+
+  if (idx_fit != idx_c) {
+      PANIC ("FAIL: Did not pick the best fitting hole.");
+  }
+
+  /* 성공 시 아무 메시지 없이 조용히 종료 -> PASS */
 
   /* 4. 뒷정리 */
   palloc_free_page (b);
   palloc_free_page (d);
-  if (fit != NULL) palloc_free_page (fit);
+  palloc_free_page (fit);
 }
