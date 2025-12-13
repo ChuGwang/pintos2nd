@@ -123,7 +123,7 @@ palloc_get_multiple(enum palloc_flags flags, size_t page_cnt)
 
    // 3. best fit
    else if(palloc_mode == PAL_BEST_FIT) {
-      page_idx = bitmap_scan_and_flip (pool->used_map, page_cnt);
+      page_idx = bitmap_scan_and_flip_best_fit (pool->used_map, page_cnt);
    }
 
       // 예외 처리
