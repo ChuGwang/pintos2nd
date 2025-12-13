@@ -233,7 +233,7 @@ init_pool(struct pool *p, void *base, size_t page_cnt, const char *name)
 
 
    // 원래 있던 코드인데 printf 때문에 오류 나는 걸 수도 있다고 해서 일단 주석 처리
-    //printf("%zu pages available in %s.\n", page_cnt, name);
+    printf("%zu pages available in %s.\n", page_cnt, name);
 
 
 
