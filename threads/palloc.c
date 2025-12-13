@@ -229,16 +229,8 @@ init_pool(struct pool *p, void *base, size_t page_cnt, const char *name)
         PANIC("Not enough memory in %s for bitmap.", name);
     page_cnt -= bm_pages;
 
-
-
-
-   // 원래 있던 코드인데 printf 때문에 오류 나는 걸 수도 있다고 해서 일단 주석 처리
     printf("%zu pages available in %s.\n", page_cnt, name);
 
-
-
-
-   
     /* Initialize the pool. */
     lock_init(&p->lock);
     p->used_map = bitmap_create_in_buf(page_cnt, base, bm_pages * PGSIZE);
