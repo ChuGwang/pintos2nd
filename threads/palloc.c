@@ -32,6 +32,12 @@ struct pool {
     struct lock lock;        /* Mutual exclusion. */
     struct bitmap *used_map; /* Bitmap of free pages. */
     uint8_t *base;           /* Base of pool. */
+
+
+   // 추가
+   size_t scan_idx;   // 마지막 할당 위치 기억, next fit에서 사용
+
+
 };
 
 /* Two pools: one for kernel data, one for user pages. */
@@ -88,7 +94,48 @@ palloc_get_multiple(enum palloc_flags flags, size_t page_cnt)
         return NULL;
 
     lock_acquire(&pool->lock);
-    page_idx = bitmap_scan_and_flip(pool->used_map, 0, page_cnt, false);
+   
+   // 이게 원래 줄 page_idx = bitmap_scan_and_flip(pool->used_map, 0, page_cnt, false);
+
+
+   
+   
+//여기 수정 ( first fit일 때는 0 맞는데 n, b, bu도 구현해야됨)
+
+// 1. first fit
+   if (palloc_mode == PAL_FIRST_FIT) {
+      page_idx = bitmap_scan_and_flip(pool->used_map, 0, page_cnt, false);
+   }
+
+// 2. next fit
+   else if (palloc_mode == PAL_NEXT_FIT) {
+      page_idx = bitmap_scan_and_flip (pool -> used_map, pool ->scan_idx, page_cnt, false);
+
+      // 못찾은 경우
+      if ( page_idx == BITMAP_ERROR) {
+         page_idx = bitmap_scan_and_flip (pool->used_map, 0, page_cnt, false);
+      }
+      // 찾은 경우
+      if (page_idx != BITMAP_ERROR) {
+            pool->scan_idx = page_idx + page_cnt;
+        }
+   }
+
+   // 3. best fit
+   else if(palloc_mode == PAL_BEST_FIT) {
+      page_idx = bitmap_scan_and_flip (pool->used_map, page_cnt);
+   }
+
+      // 예외 처리
+   else {
+      page_idx = bitmap_scan_and_flip (pool -> used_map, 0, page_cnt, false);
+   }
+
+   //-----------------------------------------------------------------------------------
+
+   
+      
+   
     lock_release(&pool->lock);
 
     if (page_idx != BITMAP_ERROR)
@@ -188,6 +235,12 @@ init_pool(struct pool *p, void *base, size_t page_cnt, const char *name)
     lock_init(&p->lock);
     p->used_map = bitmap_create_in_buf(page_cnt, base, bm_pages * PGSIZE);
     p->base = base + bm_pages * PGSIZE;
+
+   
+   // 추가 
+    p->scan_idx = 0; // scan_idx 초기화 
+
+   
 }
 
 /* Returns true if PAGE was allocated from POOL,
