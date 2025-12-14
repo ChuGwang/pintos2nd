@@ -39,6 +39,8 @@ size_t bitmap_scan_and_flip(struct bitmap *, size_t start, size_t cnt, bool);
 
 // 추가, best fit 사용 위해
 size_t bitmap_scan_and_flip_best_fit (struct bitmap *b, size_t cnt);
+// 추가, buddy 위해
+size_t bitmap_scan_and_flip_buddy (struct bitmap *b, size_t start, size_t cnt, bool value);
 
 /* File input and output. */
 #ifdef FILESYS
