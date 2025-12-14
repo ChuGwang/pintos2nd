@@ -77,6 +77,19 @@ void palloc_init(size_t user_page_limit)
               user_pages, "user pool");
 }
 
+
+// 추가
+// buddy system 위해 추가
+static size_t
+get_buddy_size (size_t page_cnt)
+{
+  size_t size = 1;
+  while (size < page_cnt)
+    size <<= 1;
+  return size;
+}
+
+
 /* Obtains and returns a group of PAGE_CNT contiguous free pages.
    If PAL_USER is set, the pages are obtained from the user pool,
    otherwise from the kernel pool.  If PAL_ZERO is set in FLAGS,
@@ -94,14 +107,9 @@ palloc_get_multiple(enum palloc_flags flags, size_t page_cnt)
         return NULL;
 
     lock_acquire(&pool->lock);
-   
-   // 이게 원래 줄 page_idx = bitmap_scan_and_flip(pool->used_map, 0, page_cnt, false);
-
 
    
-   
-//여기 수정 ( first fit일 때는 0 맞는데 n, b, bu도 구현해야됨)
-
+// 수정
 // 1. first fit
    if (palloc_mode == PAL_FIRST_FIT) {
       page_idx = bitmap_scan_and_flip(pool->used_map, 0, page_cnt, false);
@@ -126,6 +134,18 @@ palloc_get_multiple(enum palloc_flags flags, size_t page_cnt)
       page_idx = bitmap_scan_and_flip_best_fit (pool->used_map, page_cnt);
    }
 
+   // 4. buddy system
+   else if (palloc_mode == PAL_BUDDY) {
+      
+      size_t buddy_cnt = get_buddy_size(page_cnt);
+       
+      page_idx = bitmap_scan_and_flip_aligned(pool->used_map, 0, buddy_cnt, false);
+       
+      if (page_idx != BITMAP_ERROR)
+         page_cnt = buddy_cnt; 
+    }
+
+      
       // 예외 처리
    else {
       page_idx = bitmap_scan_and_flip (pool -> used_map, 0, page_cnt, false);
@@ -184,6 +204,13 @@ void palloc_free_multiple(void *pages, size_t page_cnt)
     else
         NOT_REACHED();
 
+   // 추가
+   // buddy system 메모리 해제 위해 추가
+   if (palloc_mode == PAL_BUDDY) {
+        page_cnt = get_buddy_size(page_cnt);
+    }
+
+   
     page_idx = pg_no(pages) - pg_no(pool->base);
 
 #ifndef NDEBUG
