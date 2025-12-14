@@ -322,20 +322,17 @@ size_t
 bitmap_scan_and_flip_best_fit (struct bitmap *b, size_t cnt)
 {
   size_t idx = 0;
-  size_t best_idx = BITMAP_ERROR; // 찾은 곳 중 가장 좋은 위치
-  size_t min_len = ULONG_MAX;     // 그때의 구멍 크기 (초기값: 무한대)
-
-  // 1. 비트맵 전체를 순회하며 빈 구멍(Gap) 탐색 
+  size_t best_idx = BITMAP_ERROR;
+  size_t min_len = ULONG_MAX;
+   
   while (idx < b->bit_cnt) 
   {
-      //사용 중인(true) 비트는 건너뛴다
       if (bitmap_test(b, idx)) 
       {
           idx++;
           continue;
       }
 
-      // 빈 공간(false) 발견! 연속된 길이가 얼마인지 잰다
       size_t start = idx;
       size_t len = 0;
       
@@ -345,10 +342,8 @@ bitmap_scan_and_flip_best_fit (struct bitmap *b, size_t cnt)
           idx++;
       }
 
-      // 2. 구멍의 크기(len)가 요청한 크기(cnt)보다 큰지 확인
       if (len >= cnt) 
       {
-          // 3. Best Fit 핵심: 기존에 찾은 구멍보다 더 작으면(딱 맞으면) 갱신
           if (len < min_len) 
           {
               min_len = len;
@@ -356,8 +351,7 @@ bitmap_scan_and_flip_best_fit (struct bitmap *b, size_t cnt)
           }
       }
   }
-
-  // 4. 가장 좋은 위치(best_idx)를 찾았다면 예약(Flip) 수행
+   
   if (best_idx != BITMAP_ERROR) 
   {
       bitmap_set_multiple (b, best_idx, cnt, true);
@@ -376,8 +370,7 @@ bitmap_scan_and_flip_buddy (struct bitmap *b, size_t start, size_t cnt, bool val
   size_t idx;
 
   ASSERT (b != NULL);
-  
-  /* start부터 cnt씩 점프하며 탐색 (Buddy System의 정렬 조건 만족) */
+   
   for (idx = start; idx + cnt <= b->bit_cnt; idx += cnt) 
     {
       if (!bitmap_contains (b, idx, cnt, !value)) 
