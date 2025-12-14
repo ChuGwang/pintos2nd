@@ -368,6 +368,29 @@ bitmap_scan_and_flip_best_fit (struct bitmap *b, size_t cnt)
 //----------------------------------------------------------------------
 
 
+// 추가
+// buddy sys 위해
+size_t
+bitmap_scan_and_flip_buddy (struct bitmap *b, size_t start, size_t cnt, bool value)
+{
+  size_t idx;
+
+  ASSERT (b != NULL);
+  
+  /* start부터 cnt씩 점프하며 탐색 (Buddy System의 정렬 조건 만족) */
+  for (idx = start; idx + cnt <= b->bit_cnt; idx += cnt) 
+    {
+      if (!bitmap_contains (b, idx, cnt, !value)) 
+        {
+          bitmap_set_multiple (b, idx, cnt, !value);
+          return idx;
+        }
+    }
+
+  return BITMAP_ERROR;
+}
+//-----------------------------------------------------------------------------
+
 
 
 
