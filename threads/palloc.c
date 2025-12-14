@@ -139,7 +139,7 @@ palloc_get_multiple(enum palloc_flags flags, size_t page_cnt)
       
       size_t buddy_cnt = get_buddy_size(page_cnt);
        
-      page_idx = bitmap_scan_and_flip_aligned(pool->used_map, 0, buddy_cnt, false);
+      page_idx = bitmap_scan_and_flip_buddy(pool->used_map, 0, buddy_cnt, false);
        
       if (page_idx != BITMAP_ERROR)
          page_cnt = buddy_cnt; 
